@@ -1,6 +1,6 @@
 
 export type Role = 'TREASURER' | 'MEMBER' | 'SUPERVISOR';
-export type GlobalRole = 'USER' | Role; // SUPERVISOR garde un accès spécial ONG
+export type GlobalRole = 'USER' | Role; 
 export type OrganizationRole = 'ADMIN' | 'MEMBER';
 export type TransactionType = 'CONTRIBUTION' | 'LOAN' | 'LOAN_REPAYMENT' | 'INCOME' | 'EXPENSE';
 export type MemberStatus = 'UP_TO_DATE' | 'LATE';
@@ -15,9 +15,8 @@ export interface User {
   email: string;
   displayName: string;
   role: GlobalRole; 
-  // IDs des tontines gérées (Admin)
+  isVerified: boolean; // Nouveau : Statut de vérification d'identité
   managedOrgIds: string[];
-  // IDs des tontines où l'utilisateur est membre
   memberOrgIds: string[];
 }
 
@@ -34,7 +33,7 @@ export interface RegistrationData {
 
 export interface Member {
   id: string;
-  userId: string; // Lien vers le profil User global
+  userId: string;
   fullName: string;
   phone: string;
   status: MemberStatus;
@@ -48,12 +47,12 @@ export interface Post {
   authorId: string;
   authorName: string;
   authorAvatar?: string;
-  orgId?: string; // Si lié à une tontine spécifique
+  orgId?: string;
   content: string;
   type: 'ANNOUNCEMENT' | 'DISCUSSION' | 'NEW_GROUP';
   likes: number;
   comments: number;
-  timestamp: string; // ISO Date
+  timestamp: string;
 }
 
 export interface Transaction {
@@ -89,7 +88,7 @@ export interface LoanRequest {
   memberName: string;
   amount: number;
   businessPlanSummary: string;
-  jobsPromise: number; // Impact data: estimated jobs created
+  jobsPromise: number;
   status: BusinessPlanStatus;
   requestDate: string;
 }
@@ -112,7 +111,7 @@ export interface Organization {
   members: Member[];
   transactions: Transaction[];
   cycles: Cycle[];
-  loanRequests: LoanRequest[]; // Sub-collection for business plan tracking
+  loanRequests: LoanRequest[];
 }
 
 export interface ImpactReport {

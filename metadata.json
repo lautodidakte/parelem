@@ -1,6 +1,6 @@
 {
-  "name": "Parè en ligne ",
-  "description": "Offline-first Tontine management and Impact Monitoring application for Chad.",
+  "name": "DirectParé",
+  "description": "Plateforme sociale de gestion de Tontines et de suivi d'impact au Tchad.",
   "requestFramePermissions": [
     "camera",
     "geolocation"

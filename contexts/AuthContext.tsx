@@ -1,22 +1,32 @@
+
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import { User } from '../types';
-import { CURRENT_USER_TREASURER, CURRENT_USER_SUPERVISOR, CURRENT_USER_MEMBER } from '../constants';
+import { CURRENT_USER_TREASURER, CURRENT_USER_SUPERVISOR, CURRENT_USER_MEMBER, CURRENT_USER_THIERRY } from '../constants';
 
 interface AuthContextType {
   user: User | null;
   login: (email: string) => Promise<void>;
   logout: () => void;
+  verifyUser: () => Promise<void>; // Simuler la validation KYC
   isLoading: boolean;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
+
+// On ajoute isVerified aux mocks de base (Thierry et Member commencent non-vérifiés)
+const MOCK_USERS_AUGMENTED = [
+    { ...CURRENT_USER_TREASURER, isVerified: true },
+    { ...CURRENT_USER_SUPERVISOR, isVerified: true },
+    { ...CURRENT_USER_MEMBER, isVerified: false },
+    { ...CURRENT_USER_THIERRY, isVerified: false },
+];
 
 export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [user, setUser] = useState<User | null>(null);
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
-    const storedUser = localStorage.getItem('mon_pare_user');
+    const storedUser = localStorage.getItem('directpare_user');
     if (storedUser) {
       setUser(JSON.parse(storedUser));
     }
@@ -25,37 +35,43 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   const login = async (email: string) => {
     setIsLoading(true);
-    await new Promise(resolve => setTimeout(resolve, 800)); // Simulate delay
+    await new Promise(resolve => setTimeout(resolve, 800));
 
     let foundUser: User | null = null;
     const normalizedEmail = email.toLowerCase().trim();
 
-    if (normalizedEmail === CURRENT_USER_TREASURER.email.toLowerCase()) {
-      foundUser = CURRENT_USER_TREASURER;
-    } else if (normalizedEmail === CURRENT_USER_SUPERVISOR.email.toLowerCase()) {
-      foundUser = CURRENT_USER_SUPERVISOR;
-    } else if (normalizedEmail === CURRENT_USER_MEMBER.email.toLowerCase()) {
-      foundUser = CURRENT_USER_MEMBER;
-    }
+    const mockMatch = MOCK_USERS_AUGMENTED.find(u => u.email.toLowerCase() === normalizedEmail);
 
-    if (foundUser) {
+    if (mockMatch) {
+      foundUser = mockMatch;
       setUser(foundUser);
-      localStorage.setItem('mon_pare_user', JSON.stringify(foundUser));
+      localStorage.setItem('directpare_user', JSON.stringify(foundUser));
     } else {
       setIsLoading(false);
-      throw new Error("Email inconnu. Essayez 'mahamat@monpare.td' (Trésorier), 'fatime@ngo-chad.org' (Superviseur) ou 'zara@monpare.td' (Membre).");
+      throw new Error(`Email inconnu.`);
     }
     
     setIsLoading(false);
   };
 
+  const verifyUser = async () => {
+    setIsLoading(true);
+    await new Promise(resolve => setTimeout(resolve, 2000)); // Simule scan d'identité
+    if (user) {
+      const updatedUser = { ...user, isVerified: true };
+      setUser(updatedUser);
+      localStorage.setItem('directpare_user', JSON.stringify(updatedUser));
+    }
+    setIsLoading(false);
+  };
+
   const logout = () => {
     setUser(null);
-    localStorage.removeItem('mon_pare_user');
+    localStorage.removeItem('directpare_user');
   };
 
   return (
-    <AuthContext.Provider value={{ user, login, logout, isLoading }}>
+    <AuthContext.Provider value={{ user, login, logout, verifyUser, isLoading }}>
       {children}
     </AuthContext.Provider>
   );

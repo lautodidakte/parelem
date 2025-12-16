@@ -1,8 +1,11 @@
+
 import React from 'react';
-import { NavLink, Outlet, useNavigate, useLocation } from 'react-router-dom';
-import { LayoutDashboard, Users, PieChart, LogOut, FileText, Menu, X, CreditCard, UserCircle, Home, Wallet, Bell, Plus } from 'lucide-react';
+import { NavLink, Outlet, useNavigate } from 'react-router-dom';
+import { LayoutDashboard, Users, PieChart, LogOut, FileText, UserCircle, Home, Wallet, Bell, Plus } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
+import { useTontines } from '../contexts/TontinesContext';
 import { Role } from '../types';
+import { CreateTontineDialog } from './CreateTontineDialog';
 
 interface LayoutProps {
   role: Role;
@@ -10,23 +13,14 @@ interface LayoutProps {
 
 export const AppLayout: React.FC<LayoutProps> = ({ role }) => {
   const navigate = useNavigate();
-  const location = useLocation();
   const { logout, user } = useAuth();
-  const [mobileMenuOpen, setMobileMenuOpen] = React.useState(false);
+  const { tontines, addTontine } = useTontines();
+  const [isCreateOpen, setIsCreateOpen] = React.useState(false);
 
   const handleLogout = () => {
     logout();
     navigate('/');
   };
-
-  // Bottom Navigation Items for Members (Mobile)
-  const memberBottomNav = [
-    { icon: Home, label: 'Accueil', to: '/member' },
-    { icon: Wallet, label: 'Wallet', to: '/member/wallet' },
-    // Middle button is handled separately
-    { icon: Bell, label: 'Notific...', to: '/member/notifications' },
-    { icon: UserCircle, label: 'Compte', to: '/member/profile' },
-  ];
 
   // Desktop Sidebar Items
   let desktopNavItems = [];
@@ -34,7 +28,6 @@ export const AppLayout: React.FC<LayoutProps> = ({ role }) => {
     desktopNavItems = [
       { icon: LayoutDashboard, label: 'Tableau de Bord', to: '/dashboard' },
       { icon: FileText, label: 'Cycle Tontine', to: '/dashboard/cycles' },
-      { icon: CreditCard, label: 'Dettes', to: '/dashboard/debts' },
       { icon: Users, label: 'Membres', to: '/dashboard/members' },
     ];
   } else if (role === 'SUPERVISOR') {
@@ -46,7 +39,6 @@ export const AppLayout: React.FC<LayoutProps> = ({ role }) => {
     desktopNavItems = [
       { icon: Home, label: 'Accueil', to: '/member' },
       { icon: Wallet, label: 'Mon Wallet', to: '/member/wallet' },
-      { icon: FileText, label: 'Mes Tontines', to: '/member/tontine' },
       { icon: UserCircle, label: 'Mon Profil', to: '/member/profile' },
     ];
   }
@@ -60,8 +52,8 @@ export const AppLayout: React.FC<LayoutProps> = ({ role }) => {
         bg-white border-r border-gray-100 z-50
       `}>
         <div className="p-8 flex items-center gap-3">
-          <div className="w-10 h-10 bg-primary rounded-xl flex items-center justify-center text-white font-bold text-xl">P</div>
-          <h1 className="text-2xl font-bold text-gray-900 font-heading tracking-tight">Paré</h1>
+          <div className="w-10 h-10 bg-primary rounded-xl flex items-center justify-center text-white font-bold text-xl">D</div>
+          <h1 className="text-2xl font-bold text-gray-900 font-heading tracking-tight">DirectParé</h1>
         </div>
 
         <div className="px-8 mb-4">
@@ -83,7 +75,7 @@ export const AppLayout: React.FC<LayoutProps> = ({ role }) => {
             <NavLink
               key={item.to}
               to={item.to}
-              end={item.to === '/member' || item.to === '/dashboard' || item.to === '/supervisor'} // Exact match for root
+              end={item.to === '/member' || item.to === '/dashboard' || item.to === '/supervisor'} 
               className={({ isActive }) => `
                 flex items-center gap-4 px-5 py-4 rounded-2xl transition-all duration-300 group font-medium
                 ${isActive 
@@ -112,14 +104,6 @@ export const AppLayout: React.FC<LayoutProps> = ({ role }) => {
 
       {/* Main Content Area */}
       <main className="flex-1 overflow-y-auto h-screen relative bg-[#F8FAFC] pb-24 md:pb-0">
-         {/* Mobile Header (Only for non-members or specific pages if needed, usually hidden in the app design shown) */}
-         {role !== 'MEMBER' && (
-           <div className="md:hidden flex justify-between items-center p-4 bg-white border-b border-gray-100 sticky top-0 z-40">
-               <div className="font-bold text-xl text-primary">Paré</div>
-               <button onClick={handleLogout}><LogOut size={20} className="text-gray-400"/></button>
-           </div>
-         )}
-         
          <div className="p-4 md:p-8 max-w-md mx-auto md:max-w-6xl w-full">
             <Outlet />
          </div>
@@ -127,59 +111,69 @@ export const AppLayout: React.FC<LayoutProps> = ({ role }) => {
 
       {/* Mobile Bottom Navigation - Only for MEMBERS */}
       {role === 'MEMBER' && (
-        <div className="md:hidden fixed bottom-0 left-0 right-0 bg-white border-t border-gray-100 px-6 py-2 pb-6 z-50 flex justify-between items-end safe-bottom">
-            {/* Left Items */}
-            <div className="flex gap-8">
-               <NavLink to="/member" end className={({isActive}) => `flex flex-col items-center gap-1 ${isActive ? 'text-primary' : 'text-gray-400'}`}>
-                  {({ isActive }) => (
-                    <>
-                      <Home size={24} strokeWidth={isActive ? 2.5 : 2} />
-                      <span className="text-[10px] font-medium">Accueil</span>
-                    </>
-                  )}
-               </NavLink>
-               <NavLink to="/member/wallet" className={({isActive}) => `flex flex-col items-center gap-1 ${isActive ? 'text-primary' : 'text-gray-400'}`}>
-                  {({ isActive }) => (
-                    <>
-                      <Wallet size={24} strokeWidth={isActive ? 2.5 : 2} />
-                      <span className="text-[10px] font-medium">Wallet</span>
-                    </>
-                  )}
-               </NavLink>
-            </div>
+        <>
+          <div className="md:hidden fixed bottom-0 left-0 right-0 bg-white border-t border-gray-100 px-6 py-2 pb-6 z-50 flex justify-between items-end safe-bottom">
+              {/* Left Items */}
+              <div className="flex gap-8">
+                 <NavLink to="/member" end className={({isActive}) => `flex flex-col items-center gap-1 ${isActive ? 'text-primary' : 'text-gray-400'}`}>
+                    {({ isActive }) => (
+                      <>
+                        <Home size={24} strokeWidth={isActive ? 2.5 : 2} />
+                        <span className="text-[10px] font-medium">Accueil</span>
+                      </>
+                    )}
+                 </NavLink>
+                 <NavLink to="/member/wallet" className={({isActive}) => `flex flex-col items-center gap-1 ${isActive ? 'text-primary' : 'text-gray-400'}`}>
+                    {({ isActive }) => (
+                      <>
+                        <Wallet size={24} strokeWidth={isActive ? 2.5 : 2} />
+                        <span className="text-[10px] font-medium">Wallet</span>
+                      </>
+                    )}
+                 </NavLink>
+              </div>
 
-            {/* Floating Action Button */}
-            <div className="relative -top-8">
-                <button className="w-14 h-14 bg-white rounded-full flex items-center justify-center shadow-[0_4px_20px_rgba(0,0,0,0.1)] border border-gray-100">
-                    <div className="w-12 h-12 bg-gray-100 rounded-full flex items-center justify-center text-gray-600 hover:bg-gray-200 transition-colors">
-                        <Plus size={24} />
-                    </div>
-                </button>
-            </div>
-
-            {/* Right Items */}
-            <div className="flex gap-8">
-               <NavLink to="/member/notifications" className={({isActive}) => `flex flex-col items-center gap-1 ${isActive ? 'text-primary' : 'text-gray-400'}`}>
-                  {({ isActive }) => (
-                    <>
-                      <div className="relative">
-                        <Bell size={24} strokeWidth={isActive ? 2.5 : 2} />
-                        <span className="absolute -top-1 -right-1 w-4 h-4 bg-secondary text-white text-[9px] flex items-center justify-center rounded-full font-bold">1</span>
+              {/* Floating Action Button */}
+              <div className="relative -top-8">
+                  <button 
+                    onClick={() => setIsCreateOpen(true)}
+                    className="w-14 h-14 bg-white rounded-full flex items-center justify-center shadow-[0_4px_20px_rgba(0,0,0,0.15)] border border-gray-100 active:scale-95 transition-transform"
+                  >
+                      <div className="w-12 h-12 bg-primary text-white rounded-full flex items-center justify-center hover:bg-primaryDark transition-colors">
+                          <Plus size={24} />
                       </div>
-                      <span className="text-[10px] font-medium">Notific...</span>
-                    </>
-                  )}
-               </NavLink>
-               <NavLink to="/member/profile" className={({isActive}) => `flex flex-col items-center gap-1 ${isActive ? 'text-primary' : 'text-gray-400'}`}>
-                  {({ isActive }) => (
-                    <>
-                      <UserCircle size={24} strokeWidth={isActive ? 2.5 : 2} />
-                      <span className="text-[10px] font-medium">Compte</span>
-                    </>
-                  )}
-               </NavLink>
-            </div>
-        </div>
+                  </button>
+              </div>
+
+              {/* Right Items */}
+              <div className="flex gap-8">
+                 <NavLink to="/member/notifications" className={({isActive}) => `flex flex-col items-center gap-1 ${isActive ? 'text-primary' : 'text-gray-400'}`}>
+                    {({ isActive }) => (
+                      <>
+                        <div className="relative">
+                          <Bell size={24} strokeWidth={isActive ? 2.5 : 2} />
+                          <span className="absolute -top-1 -right-1 w-4 h-4 bg-secondary text-white text-[9px] flex items-center justify-center rounded-full font-bold">1</span>
+                        </div>
+                        <span className="text-[10px] font-medium">Notific...</span>
+                      </>
+                    )}
+                 </NavLink>
+                 <NavLink to="/member/profile" className={({isActive}) => `flex flex-col items-center gap-1 ${isActive ? 'text-primary' : 'text-gray-400'}`}>
+                    {({ isActive }) => (
+                      <>
+                        <UserCircle size={24} strokeWidth={isActive ? 2.5 : 2} />
+                        <span className="text-[10px] font-medium">Compte</span>
+                      </>
+                    )}
+                 </NavLink>
+              </div>
+          </div>
+          <CreateTontineDialog 
+            isOpen={isCreateOpen} 
+            onClose={() => setIsCreateOpen(false)} 
+            onTontineCreated={addTontine}
+          />
+        </>
       )}
     </div>
   );

@@ -1,14 +1,20 @@
 
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useAuth } from '../contexts/AuthContext';
 import { useNavigate } from 'react-router-dom';
-import { Loader2, AlertCircle, ArrowRight, ArrowLeft, Edit2, Lock, Mail, CheckCircle2, User as UserIcon, Phone, FileText, ShieldCheck, KeyRound } from 'lucide-react';
+import { Loader2, AlertCircle, ArrowRight, ArrowLeft, Edit2, Lock, Mail, CheckCircle2, User as UserIcon, Phone, ShieldCheck, KeyRound, Info, ShieldAlert } from 'lucide-react';
 import { RegistrationData } from '../types';
+import { OTPVerification } from './OTPVerification';
 
 type AuthView = 'LOGIN_EMAIL' | 'LOGIN_PASSWORD' | 'REGISTER' | 'OTP' | 'FORGOT_PASSWORD' | 'RESET_PASSWORD';
 
-export const LoginPage: React.FC = () => {
-  const [view, setView] = useState<AuthView>('LOGIN_EMAIL');
+interface LoginPageProps {
+  initialView?: AuthView;
+  registrationLevel?: 'A' | 'B';
+}
+
+export const LoginPage: React.FC<LoginPageProps> = ({ initialView = 'LOGIN_EMAIL', registrationLevel = 'A' }) => {
+  const [view, setView] = useState<AuthView>(initialView);
   
   // Login State
   const [email, setEmail] = useState('');
@@ -19,14 +25,6 @@ export const LoginPage: React.FC = () => {
     firstName: '', lastName: '', username: '', email: '', phone: '', password: '', confirmPassword: '', acceptTerms: false
   });
 
-  // OTP State
-  const [otp, setOtp] = useState(['', '', '', '', '', '']);
-  const otpRefs = useRef<(HTMLInputElement | null)[]>([]);
-
-  // Reset Password State
-  const [newPassword, setNewPassword] = useState('');
-  const [confirmNewPassword, setConfirmNewPassword] = useState('');
-
   // Global UI State
   const [error, setError] = useState<string | null>(null);
   const [isLoadingInternal, setIsLoadingInternal] = useState(false);
@@ -34,6 +32,11 @@ export const LoginPage: React.FC = () => {
   // Context & Hooks
   const { login, isLoading: authLoading, user } = useAuth();
   const navigate = useNavigate();
+
+  // Sync internal view with prop change if needed
+  useEffect(() => {
+    setView(initialView);
+  }, [initialView]);
 
   // Redirect if already logged in
   useEffect(() => {
@@ -49,25 +52,6 @@ export const LoginPage: React.FC = () => {
     return String(email).toLowerCase().match(/^(([^<>()[\]\\.,;:\s@"]+(\.[^<>()[\]\\.,;:\s@"]+)*)|(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/);
   };
 
-  const handleOtpChange = (index: number, value: string) => {
-    if (isNaN(Number(value))) return;
-    const newOtp = [...otp];
-    newOtp[index] = value;
-    setOtp(newOtp);
-    // Focus next input
-    if (value && index < 5) {
-      otpRefs.current[index + 1]?.focus();
-    }
-  };
-
-  const handleOtpKeyDown = (index: number, e: React.KeyboardEvent) => {
-    if (e.key === 'Backspace' && !otp[index] && index > 0) {
-      otpRefs.current[index - 1]?.focus();
-    }
-  };
-
-  // --- Handlers ---
-
   const handleLoginStep1 = (e: React.FormEvent) => {
     e.preventDefault();
     setError(null);
@@ -80,162 +64,144 @@ export const LoginPage: React.FC = () => {
     e.preventDefault();
     setError(null);
     if (!password) return setError("Mot de passe requis.");
-    
     try {
-      await login(email); // Mock login
+      await login(email);
     } catch (err: any) {
       setError(err.message || "Erreur de connexion.");
     }
+  };
+
+  // Validation Check for Registration
+  const isRegFormValid = () => {
+    return (
+      regData.firstName.trim() !== '' &&
+      regData.lastName.trim() !== '' &&
+      regData.username.trim() !== '' &&
+      regData.email.trim() !== '' &&
+      validateEmail(regData.email) !== null &&
+      regData.phone.trim() !== '' &&
+      regData.password.length >= 6 &&
+      regData.password === regData.confirmPassword &&
+      regData.acceptTerms
+    );
   };
 
   const handleRegisterSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     setError(null);
     
-    // Basic Validation
-    if (!regData.firstName || !regData.lastName || !regData.username || !regData.email || !regData.password) {
-        return setError("Tous les champs sont requis.");
-    }
-    if (regData.password !== regData.confirmPassword) {
-        return setError("Les mots de passe ne correspondent pas.");
-    }
-    if (!regData.acceptTerms) {
-        return setError("Vous devez accepter les conditions d'utilisation.");
+    if (!isRegFormValid()) {
+        return setError("Veuillez remplir correctement tous les champs.");
     }
 
-    // Simulate API call
     setIsLoadingInternal(true);
     setTimeout(() => {
         setIsLoadingInternal(false);
-        // Assuming success, go to OTP
-        // We carry over the email to OTP context
         setEmail(regData.email); 
         setView('OTP');
     }, 1000);
   };
 
-  const handleOtpSubmit = (e: React.FormEvent) => {
-      e.preventDefault();
+  const handleOtpVerify = (code: string) => {
       setError(null);
-      const code = otp.join('');
-      if (code.length < 6) return setError("Veuillez saisir le code complet.");
-
       setIsLoadingInternal(true);
       setTimeout(async () => {
           setIsLoadingInternal(false);
-          
-          if (view === 'OTP') {
-             // Logic: If previous view was Register -> Login directly
-             // Logic: If previous view was ForgotPassword -> Go to Reset
-             // For simplicity in this demo, we check if regData.email is populated to know if we came from register
-             if (regData.email === email && regData.email !== '') {
-                 // Registration flow complete
-                 try {
-                    await login(regData.email); // Auto login
-                 } catch(e) {
-                     setError("Compte créé mais erreur de connexion auto.");
-                     setView('LOGIN_EMAIL');
-                 }
-             } else {
-                 // Forgot password flow
-                 setView('RESET_PASSWORD');
-             }
+          const userEmail = email || regData.email;
+          if (userEmail) {
+              try {
+                await login(userEmail);
+              } catch(e) {
+                setError("Vérification réussie, mais erreur de connexion auto.");
+                setView('LOGIN_EMAIL');
+              }
           }
-      }, 1000);
+      }, 1500);
   };
 
-  const handleForgotPasswordRequest = (e: React.FormEvent) => {
-      e.preventDefault();
-      if (!validateEmail(email)) return setError("Email invalide.");
-      
-      setIsLoadingInternal(true);
-      setTimeout(() => {
-          setIsLoadingInternal(false);
-          // Go to OTP
-          setView('OTP');
-      }, 800);
+  const handleGlobalBack = () => {
+    if (view === 'LOGIN_EMAIL') {
+      navigate('/');
+    } else if (view === 'LOGIN_PASSWORD' || view === 'OTP' || view === 'FORGOT_PASSWORD') {
+      setView('LOGIN_EMAIL');
+    } else if (view === 'REGISTER' || view === 'RESET_PASSWORD') {
+      setView('LOGIN_EMAIL');
+    }
   };
 
-  const handleResetPassword = (e: React.FormEvent) => {
-      e.preventDefault();
-      if (newPassword !== confirmNewPassword) return setError("Les mots de passe ne correspondent pas.");
-      
-      setIsLoadingInternal(true);
-      setTimeout(() => {
-          setIsLoadingInternal(false);
-          setView('LOGIN_EMAIL');
-          alert("Mot de passe réinitialisé avec succès !");
-          setPassword(''); // Clear old logic
-      }, 1000);
-  };
-
-  // --- Render Components ---
-
-  const renderBackBtn = (target: AuthView) => (
-    <button 
-      onClick={() => setView(target)} 
-      className="absolute top-6 left-6 p-3 bg-white/10 hover:bg-white/20 text-white rounded-full transition-all z-50 backdrop-blur-sm group"
-    >
-      <ArrowLeft size={24} className="group-hover:-translate-x-1 transition-transform" />
-    </button>
-  );
+  // Inline Validation Helpers
+  const showEmailError = regData.email !== '' && !validateEmail(regData.email);
+  const showPasswordLengthError = regData.password !== '' && regData.password.length < 6;
+  const showPasswordMatchError = regData.confirmPassword !== '' && regData.password !== regData.confirmPassword;
 
   return (
-    <div className="min-h-screen w-full flex flex-col items-center justify-center bg-primary p-6 relative overflow-y-auto">
+    <div className="min-h-screen w-full flex flex-col items-center bg-primary p-4 relative overflow-y-auto pt-20">
       
-      {/* Background FX */}
+      {/* Bouton de retour en haut à gauche */}
+      <button 
+        onClick={handleGlobalBack}
+        className="fixed top-6 left-6 p-3 bg-white/10 hover:bg-white/20 text-white rounded-full transition-all z-50 backdrop-blur-sm group"
+        aria-label="Retour"
+      >
+        <ArrowLeft size={24} className="group-hover:-translate-x-1 transition-transform" />
+      </button>
+
+      {/* Cercles de fond */}
       <div className="fixed top-0 left-0 w-full h-full overflow-hidden pointer-events-none">
         <div className="absolute top-[-10%] right-[-5%] w-96 h-96 bg-white/5 rounded-full blur-3xl"></div>
         <div className="absolute bottom-[-10%] left-[-5%] w-96 h-96 bg-secondary/10 rounded-full blur-3xl"></div>
       </div>
 
-      {/* Header (Hidden on Reg form to save space on mobile) */}
-      <div className={`text-center mb-6 relative z-10 transition-all ${view === 'REGISTER' ? 'mt-8' : ''}`}>
-        <h1 className="text-4xl font-bold text-white mb-1 font-heading tracking-tight">Mon Paré</h1>
-        <p className="text-white/80 text-xs font-medium uppercase tracking-widest">Tontine & Impact</p>
+      <div className={`text-center mb-10 relative z-10 transition-all ${view === 'REGISTER' ? 'mt-4' : ''}`}>
+        <h1 className="text-4xl font-bold text-white mb-0.5 font-heading tracking-tight">DirectParé</h1>
+        <p className="text-white/80 text-[10px] font-medium uppercase tracking-widest">Tontine & Impact</p>
       </div>
       
-      {/* Main Card Container */}
-      <div className={`w-full relative z-10 transition-all duration-300 ${view === 'REGISTER' ? 'max-w-md' : 'max-w-[340px]'}`}>
+      <div className={`w-full relative z-10 transition-all duration-300 ${view === 'REGISTER' ? 'max-w-md' : 'max-w-[320px]'}`}>
         
-        {/* --- VIEW: LOGIN EMAIL --- */}
         {view === 'LOGIN_EMAIL' && (
-          <form onSubmit={handleLoginStep1} className="animate-in fade-in slide-in-from-right-8 duration-300 space-y-6">
-            <button onClick={() => navigate('/')} type="button" className="absolute -top-20 left-0 p-2 text-white/50 hover:text-white"><ArrowLeft /></button>
-            
-            <div className="text-center mb-2">
-                <h2 className="text-2xl font-bold text-white">Connexion</h2>
-                <p className="text-white/60 text-sm">Entrez votre email pour accéder à votre espace.</p>
+          <form onSubmit={handleLoginStep1} className="animate-in fade-in slide-in-from-right-8 duration-300 space-y-5">
+            <div className="text-center mb-6">
+                <h2 className="text-2xl font-bold text-white leading-tight mb-1">Connexion</h2>
+                <p className="text-white/60 text-xs">Entrez votre email pour accéder à votre espace.</p>
             </div>
-
             <div className="relative group">
-                <div className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400 z-10"><Mail size={20} /></div>
+                <div className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400 z-10"><Mail size={18} /></div>
                 <input 
-                  type="email" 
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                  placeholder="exemple@monpare.td"
-                  className="w-full pl-11 pr-4 py-4 rounded-2xl border-0 bg-white text-gray-900 shadow-lg focus:ring-4 focus:ring-secondary/50 outline-none"
+                  type="email" value={email} onChange={(e) => setEmail(e.target.value)}
+                  placeholder="exemple@directpare.td"
+                  className="w-full pl-11 pr-4 py-4 rounded-2xl border-0 bg-white text-gray-900 shadow-[0_0_20px_rgba(255,255,255,0.1)] focus:ring-4 focus:ring-secondary/50 outline-none text-sm font-medium"
                   autoFocus
                 />
             </div>
-
-            <button type="submit" className="w-full bg-secondary text-primaryDark font-bold text-lg py-4 rounded-2xl shadow-xl hover:bg-[#ffc800] active:scale-[0.98] transition-all flex items-center justify-center gap-2 group">
-              Continuer <ArrowRight size={20} className="group-hover:translate-x-1 transition-transform" />
+            <button type="submit" className="w-full bg-secondary text-primaryDark font-bold text-base py-4 rounded-2xl shadow-xl hover:bg-[#ffc800] active:scale-[0.98] transition-all flex items-center justify-center gap-2 group">
+              Continuer <ArrowRight size={18} className="group-hover:translate-x-1 transition-transform" />
             </button>
-
-            <div className="text-center pt-4">
-                <p className="text-white/80 text-sm">Pas encore de compte ?</p>
-                <button type="button" onClick={() => setView('REGISTER')} className="text-secondary font-bold hover:underline mt-1">Créer un compte maintenant</button>
+            
+            <div className="text-center pt-8">
+                <p className="text-white/60 text-[13px] mb-3">Pas encore de compte ?</p>
+                <div className="flex flex-col gap-3">
+                  <button 
+                    type="button" 
+                    onClick={() => setView('REGISTER')} 
+                    className="text-white font-bold text-[14px] hover:text-secondary transition-colors"
+                  >
+                    Créer un compte
+                  </button>
+                  <button 
+                    type="button" 
+                    onClick={() => navigate('/signup-parrainage')} 
+                    className="text-white font-bold text-[14px] hover:text-secondary transition-colors"
+                  >
+                    Se faire parrainer
+                  </button>
+                </div>
             </div>
           </form>
         )}
 
-        {/* --- VIEW: LOGIN PASSWORD --- */}
         {view === 'LOGIN_PASSWORD' && (
-          <form onSubmit={handleLoginStep2} className="animate-in fade-in slide-in-from-right-8 duration-300 space-y-6">
-            {renderBackBtn('LOGIN_EMAIL')}
-            
+          <form onSubmit={handleLoginStep2} className="animate-in fade-in slide-in-from-right-8 duration-300 space-y-5">
             <div className="bg-white/10 backdrop-blur-md p-4 rounded-2xl border border-white/20 mb-6 flex items-center justify-between">
                <div className="flex items-center gap-3 overflow-hidden">
                  <div className="w-8 h-8 rounded-full bg-white text-primary flex items-center justify-center font-bold text-sm shrink-0">
@@ -243,290 +209,137 @@ export const LoginPage: React.FC = () => {
                  </div>
                  <span className="text-sm font-bold text-white truncate">{email}</span>
                </div>
-               <button type="button" onClick={() => setView('LOGIN_EMAIL')} className="p-2 text-white/60 hover:text-white"><Edit2 size={16} /></button>
+               <button type="button" onClick={() => setView('LOGIN_EMAIL')} className="p-1.5 text-white/60 hover:text-white"><Edit2 size={16} /></button>
             </div>
-
             <div className="relative group">
-                <div className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400 z-10"><Lock size={20} /></div>
+                <div className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400 z-10"><Lock size={18} /></div>
                 <input 
-                  type="password" 
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
+                  type="password" value={password} onChange={(e) => setPassword(e.target.value)}
                   placeholder="Mot de passe"
-                  className="w-full pl-11 pr-4 py-4 rounded-2xl border-0 bg-white text-gray-900 shadow-lg focus:ring-4 focus:ring-secondary/50 outline-none"
+                  className="w-full pl-11 pr-4 py-4 rounded-2xl border-0 bg-white text-gray-900 shadow-xl focus:ring-4 focus:ring-secondary/50 outline-none text-sm font-medium"
                   autoFocus
                 />
             </div>
-
-            <div className="text-right">
-               <button type="button" onClick={() => setView('FORGOT_PASSWORD')} className="text-xs font-bold text-secondary hover:text-white transition-colors">Mot de passe oublié ?</button>
-            </div>
-
-            <button type="submit" disabled={authLoading} className="w-full bg-secondary text-primaryDark font-bold text-lg py-4 rounded-2xl shadow-xl hover:bg-[#ffc800] transition-all flex items-center justify-center gap-2">
-               {authLoading ? <Loader2 className="animate-spin" /> : <>Se connecter <CheckCircle2 /></>}
+            <button type="submit" disabled={authLoading} className="w-full bg-secondary text-primaryDark font-bold text-base py-4 rounded-2xl shadow-xl hover:bg-[#ffc800] transition-all flex items-center justify-center gap-2">
+               {authLoading ? <Loader2 className="animate-spin" size={18} /> : <>Se connecter <CheckCircle2 size={18}/></>}
             </button>
-            
-            {/* Demo Helpers */}
-            <div className="mt-6 text-[10px] text-white/50 text-center">
-                <p className="mb-2 uppercase font-bold">Comptes Démo :</p>
-                <span onClick={() => setEmail('mahamat@monpare.td')} className="cursor-pointer hover:text-secondary underline mx-2">Trésorier</span>
-                <span onClick={() => setEmail('zara@monpare.td')} className="cursor-pointer hover:text-secondary underline mx-2">Membre</span>
+            <div className="text-center mt-4">
+              <button 
+                type="button" 
+                onClick={() => navigate('/forgot-password')}
+                className="text-white/60 text-xs hover:text-white underline underline-offset-4"
+              >
+                Mot de passe oublié ?
+              </button>
             </div>
           </form>
         )}
 
-        {/* --- VIEW: REGISTER --- */}
         {view === 'REGISTER' && (
            <form onSubmit={handleRegisterSubmit} className="animate-in slide-in-from-bottom-8 duration-500 bg-white rounded-3xl p-6 shadow-2xl space-y-4">
-              <div className="flex items-center gap-4 mb-2">
-                  <button type="button" onClick={() => setView('LOGIN_EMAIL')} className="p-2 -ml-2 hover:bg-gray-100 rounded-full"><ArrowLeft size={20} className="text-gray-600"/></button>
-                  <h2 className="text-xl font-bold text-gray-900">Créer un compte</h2>
+              
+              <div className="flex flex-col items-center mb-6">
+                <div className="flex items-center gap-2 bg-gray-100 px-4 py-1.5 rounded-full border border-gray-200 mb-2 shadow-sm">
+                  <ShieldAlert size={14} className="text-gray-400" />
+                  <span className="text-[11px] font-bold text-gray-600 uppercase tracking-wider">Compte Standard</span>
+                </div>
+                <p className="text-[10px] text-gray-400 font-medium">Vous pourrez vérifier votre identité après inscription</p>
+              </div>
+
+              <div className="flex items-center justify-between mb-2">
+                  <h2 className="text-xl font-bold text-gray-900 font-heading">Inscription</h2>
+                  {registrationLevel === 'B' && <span className="text-[10px] bg-blue-100 text-blue-700 font-bold px-3 py-1 rounded-full flex items-center gap-1"><Info size={12}/> Parrainage</span>}
               </div>
               
               <div className="grid grid-cols-2 gap-3">
                   <div>
-                      <label className="text-xs font-bold text-gray-500 ml-1">Prénom</label>
-                      <input 
-                        required
-                        type="text" 
-                        className="w-full px-4 py-3 bg-gray-50 rounded-xl border border-gray-200 focus:border-primary focus:ring-2 focus:ring-primary/20 outline-none"
-                        value={regData.firstName}
-                        onChange={e => setRegData({...regData, firstName: e.target.value})}
-                      />
+                      <label className="text-[11px] font-bold text-gray-500 ml-1">Prénom</label>
+                      <input required type="text" className="w-full px-4 py-3 bg-gray-50 rounded-xl border border-gray-200 text-sm focus:ring-2 focus:ring-primary/20 outline-none transition-all" value={regData.firstName} onChange={e => setRegData({...regData, firstName: e.target.value})}/>
                   </div>
                   <div>
-                      <label className="text-xs font-bold text-gray-500 ml-1">Nom</label>
-                      <input 
-                        required
-                        type="text" 
-                        className="w-full px-4 py-3 bg-gray-50 rounded-xl border border-gray-200 focus:border-primary focus:ring-2 focus:ring-primary/20 outline-none"
-                        value={regData.lastName}
-                        onChange={e => setRegData({...regData, lastName: e.target.value})}
-                      />
+                      <label className="text-[11px] font-bold text-gray-500 ml-1">Nom</label>
+                      <input required type="text" className="w-full px-4 py-3 bg-gray-50 rounded-xl border border-gray-200 text-sm focus:ring-2 focus:ring-primary/20 outline-none transition-all" value={regData.lastName} onChange={e => setRegData({...regData, lastName: e.target.value})}/>
                   </div>
               </div>
 
               <div>
-                  <label className="text-xs font-bold text-gray-500 ml-1">Nom d'utilisateur</label>
+                  <label className="text-[11px] font-bold text-gray-500 ml-1">Nom d'utilisateur</label>
                   <div className="relative">
                       <UserIcon size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400"/>
-                      <input 
-                        required
-                        type="text" 
-                        placeholder="@utilisateur"
-                        className="w-full pl-10 pr-4 py-3 bg-gray-50 rounded-xl border border-gray-200 focus:border-primary focus:ring-2 focus:ring-primary/20 outline-none"
-                        value={regData.username}
-                        onChange={e => setRegData({...regData, username: e.target.value})}
-                      />
+                      <input required type="text" placeholder="@utilisateur" className="w-full pl-10 pr-4 py-3 bg-gray-50 rounded-xl border border-gray-200 text-sm focus:ring-2 focus:ring-primary/20 outline-none transition-all" value={regData.username} onChange={e => setRegData({...regData, username: e.target.value})}/>
                   </div>
               </div>
 
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                <div>
-                    <label className="text-xs font-bold text-gray-500 ml-1">Email</label>
-                    <div className="relative">
-                        <Mail size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400"/>
-                        <input 
-                            required
-                            type="email" 
-                            className="w-full pl-10 pr-4 py-3 bg-gray-50 rounded-xl border border-gray-200 focus:border-primary focus:ring-2 focus:ring-primary/20 outline-none"
-                            value={regData.email}
-                            onChange={e => setRegData({...regData, email: e.target.value})}
-                        />
-                    </div>
+              <div className="grid grid-cols-2 gap-3">
+                <div className="col-span-1">
+                    <label className="text-[11px] font-bold text-gray-500 ml-1">Email</label>
+                    <input required type="email" className={`w-full px-4 py-3 bg-gray-50 rounded-xl border ${showEmailError ? 'border-red-500 focus:ring-red-200' : 'border-gray-200 focus:ring-primary/20'} text-sm outline-none transition-all`} value={regData.email} onChange={e => setRegData({...regData, email: e.target.value})}/>
+                    {showEmailError && <p className="text-[9px] text-red-500 mt-1 ml-1 font-bold animate-in fade-in">Email invalide</p>}
                 </div>
                 <div>
-                    <label className="text-xs font-bold text-gray-500 ml-1">Téléphone</label>
-                    <div className="relative">
-                        <Phone size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400"/>
-                        <input 
-                            required
-                            type="tel" 
-                            placeholder="+235..."
-                            className="w-full pl-10 pr-4 py-3 bg-gray-50 rounded-xl border border-gray-200 focus:border-primary focus:ring-2 focus:ring-primary/20 outline-none"
-                            value={regData.phone}
-                            onChange={e => setRegData({...regData, phone: e.target.value})}
-                        />
-                    </div>
+                    <label className="text-[11px] font-bold text-gray-500 ml-1">Téléphone</label>
+                    <input required type="tel" placeholder="+235..." className="w-full px-4 py-3 bg-gray-50 rounded-xl border border-gray-200 text-sm focus:ring-2 focus:ring-primary/20 outline-none transition-all" value={regData.phone} onChange={e => setRegData({...regData, phone: e.target.value})}/>
                 </div>
               </div>
 
-              <div>
-                  <label className="text-xs font-bold text-gray-500 ml-1">Mot de passe</label>
-                  <div className="relative">
-                      <Lock size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400"/>
-                      <input 
-                        required
-                        type="password" 
-                        className="w-full pl-10 pr-4 py-3 bg-gray-50 rounded-xl border border-gray-200 focus:border-primary focus:ring-2 focus:ring-primary/20 outline-none"
-                        value={regData.password}
-                        onChange={e => setRegData({...regData, password: e.target.value})}
-                      />
-                  </div>
-              </div>
-              
-              <div>
-                  <label className="text-xs font-bold text-gray-500 ml-1">Confirmer Mot de passe</label>
-                  <div className="relative">
-                      <ShieldCheck size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400"/>
-                      <input 
-                        required
-                        type="password" 
-                        className="w-full pl-10 pr-4 py-3 bg-gray-50 rounded-xl border border-gray-200 focus:border-primary focus:ring-2 focus:ring-primary/20 outline-none"
-                        value={regData.confirmPassword}
-                        onChange={e => setRegData({...regData, confirmPassword: e.target.value})}
-                      />
-                  </div>
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                    <label className="text-[11px] font-bold text-gray-500 ml-1">Mot de passe</label>
+                    <input required type="password" placeholder="min. 6 car." className={`w-full px-4 py-3 bg-gray-50 rounded-xl border ${showPasswordLengthError ? 'border-red-500 focus:ring-red-200' : 'border-gray-200 focus:ring-primary/20'} text-sm outline-none transition-all`} value={regData.password} onChange={e => setRegData({...regData, password: e.target.value})}/>
+                    {showPasswordLengthError && <p className="text-[9px] text-red-500 mt-1 ml-1 font-bold animate-in fade-in">Minimum 6 caractères</p>}
+                </div>
+                <div>
+                    <label className="text-[11px] font-bold text-gray-500 ml-1">Confirmer</label>
+                    <input required type="password" className={`w-full px-4 py-3 bg-gray-50 rounded-xl border ${showPasswordMatchError ? 'border-red-500 focus:ring-red-200' : 'border-gray-200 focus:ring-primary/20'} text-sm outline-none transition-all`} value={regData.confirmPassword} onChange={e => setRegData({...regData, confirmPassword: e.target.value})}/>
+                    {showPasswordMatchError && <p className="text-[9px] text-red-500 mt-1 ml-1 font-bold animate-in fade-in">Les mots de passe ne correspondent pas</p>}
+                </div>
               </div>
 
-              <div className="flex items-start gap-3 pt-2">
-                  <input 
-                    type="checkbox" 
-                    id="terms" 
-                    className="mt-1 w-4 h-4 rounded text-primary focus:ring-primary"
-                    checked={regData.acceptTerms}
-                    onChange={e => setRegData({...regData, acceptTerms: e.target.checked})}
-                  />
-                  <label htmlFor="terms" className="text-xs text-gray-600 leading-snug">
-                      J'accepte les <a href="#" className="text-primary font-bold hover:underline">Conditions d'Utilisation</a> et la <a href="#" className="text-primary font-bold hover:underline">Politique de Confidentialité</a> de Mon Paré.
-                  </label>
+              <div className="space-y-3 pt-2">
+                <div className="flex items-start gap-2">
+                    <input type="checkbox" id="terms" className="mt-1 w-4 h-4 rounded text-primary focus:ring-primary" checked={regData.acceptTerms} onChange={e => setRegData({...regData, acceptTerms: e.target.checked})}/>
+                    <label htmlFor="terms" className="text-[10px] text-gray-600 leading-tight">J'accepte les Conditions d'Utilisation de DirectParé et certifie l'exactitude des informations.</label>
+                </div>
+
+                <div className="flex gap-3 bg-blue-50/50 p-3 rounded-xl border border-blue-100">
+                  <Info size={16} className="text-blue-500 shrink-0 mt-0.5" />
+                  <p className="text-[10px] text-gray-500 leading-relaxed">
+                    💡 Après inscription, vous pourrez vérifier votre identité pour accéder à toutes les fonctionnalités (création de tontine, rôle d'admin, etc.)
+                  </p>
+                </div>
               </div>
 
-              <button type="submit" disabled={isLoadingInternal} className="w-full bg-secondary text-primaryDark font-bold text-lg py-4 rounded-xl shadow-lg hover:bg-yellow-400 transition-all mt-4">
-                  {isLoadingInternal ? <Loader2 className="animate-spin mx-auto"/> : "S'inscrire"}
+              <button 
+                type="submit" 
+                disabled={isLoadingInternal || !isRegFormValid()} 
+                className={`w-full font-bold text-base py-4 rounded-xl shadow-lg transition-all mt-2 flex items-center justify-center gap-2 ${
+                  isLoadingInternal || !isRegFormValid() 
+                    ? 'bg-gray-100 text-gray-400 cursor-not-allowed shadow-none' 
+                    : 'bg-secondary text-primaryDark hover:bg-[#ffc800] active:scale-[0.98]'
+                }`}
+              >
+                  {isLoadingInternal ? <Loader2 className="animate-spin" size={24}/> : <>Créer mon compte <ArrowRight size={18}/></>}
               </button>
            </form>
         )}
 
-        {/* --- VIEW: OTP --- */}
         {view === 'OTP' && (
-            <form onSubmit={handleOtpSubmit} className="animate-in zoom-in-95 duration-300">
-                {renderBackBtn(regData.email ? 'REGISTER' : 'FORGOT_PASSWORD')}
-                
-                <div className="text-center mb-8">
-                    <div className="w-16 h-16 bg-white/20 rounded-full flex items-center justify-center mx-auto mb-4 backdrop-blur-sm">
-                        <ShieldCheck size={32} className="text-white"/>
-                    </div>
-                    <h2 className="text-2xl font-bold text-white">Vérification</h2>
-                    <p className="text-white/70 text-sm mt-2 max-w-xs mx-auto">
-                        Entrez le code à 6 chiffres envoyé à <br/><span className="text-white font-bold">{email}</span>
-                    </p>
-                </div>
-
-                <div className="flex justify-between gap-2 mb-8">
-                    {otp.map((digit, idx) => (
-                        <input
-                            key={idx}
-                            ref={(el) => { otpRefs.current[idx] = el }}
-                            type="text"
-                            maxLength={1}
-                            className="w-12 h-14 rounded-xl border-none bg-white text-center text-2xl font-bold text-primary shadow-lg focus:ring-4 focus:ring-secondary/50 outline-none"
-                            value={digit}
-                            onChange={e => handleOtpChange(idx, e.target.value)}
-                            onKeyDown={e => handleOtpKeyDown(idx, e)}
-                        />
-                    ))}
-                </div>
-
-                <button type="submit" disabled={isLoadingInternal} className="w-full bg-secondary text-primaryDark font-bold text-lg py-4 rounded-2xl shadow-xl hover:bg-[#ffc800] transition-all">
-                   {isLoadingInternal ? <Loader2 className="animate-spin mx-auto"/> : "Vérifier"}
-                </button>
-                
-                <div className="text-center mt-6">
-                    <button type="button" className="text-white/60 text-sm hover:text-white font-medium">Renvoyer le code (30s)</button>
-                </div>
-            </form>
+            <OTPVerification 
+              email={email || regData.email} 
+              onVerify={handleOtpVerify} 
+              onResend={() => console.log("OTP Resend requested")}
+              isLoading={isLoadingInternal}
+            />
         )}
 
-        {/* --- VIEW: FORGOT PASSWORD --- */}
-        {view === 'FORGOT_PASSWORD' && (
-            <form onSubmit={handleForgotPasswordRequest} className="animate-in fade-in slide-in-from-right-8 duration-300">
-                {renderBackBtn('LOGIN_PASSWORD')}
-                
-                <div className="text-center mb-6">
-                    <div className="w-16 h-16 bg-white/10 rounded-2xl rotate-3 flex items-center justify-center mx-auto mb-4">
-                        <KeyRound size={32} className="text-secondary -rotate-3"/>
-                    </div>
-                    <h2 className="text-2xl font-bold text-white">Réinitialisation</h2>
-                    <p className="text-white/70 text-sm mt-2">Nous vous enverrons un code pour sécuriser votre compte.</p>
-                </div>
-
-                <div className="relative group mb-6">
-                    <div className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400 z-10"><Mail size={20} /></div>
-                    <input 
-                      type="email" 
-                      value={email}
-                      onChange={(e) => setEmail(e.target.value)}
-                      placeholder="Votre email"
-                      className="w-full pl-11 pr-4 py-4 rounded-2xl border-0 bg-white text-gray-900 shadow-lg focus:ring-4 focus:ring-secondary/50 outline-none"
-                    />
-                </div>
-
-                <button type="submit" disabled={isLoadingInternal} className="w-full bg-secondary text-primaryDark font-bold text-lg py-4 rounded-2xl shadow-xl hover:bg-[#ffc800] transition-all">
-                    {isLoadingInternal ? <Loader2 className="animate-spin mx-auto"/> : "Envoyer le code"}
-                </button>
-            </form>
-        )}
-
-        {/* --- VIEW: RESET PASSWORD --- */}
-        {view === 'RESET_PASSWORD' && (
-            <form onSubmit={handleResetPassword} className="animate-in fade-in slide-in-from-right-8 duration-300">
-                
-                <div className="text-center mb-8">
-                    <h2 className="text-2xl font-bold text-white">Nouveau Mot de Passe</h2>
-                    <p className="text-white/70 text-sm mt-2">Choisissez un mot de passe fort.</p>
-                </div>
-
-                <div className="space-y-4 mb-6">
-                    <div className="relative group">
-                        <div className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400 z-10"><Lock size={20} /></div>
-                        <input 
-                          type="password" 
-                          value={newPassword}
-                          onChange={(e) => setNewPassword(e.target.value)}
-                          placeholder="Nouveau mot de passe"
-                          className="w-full pl-11 pr-4 py-4 rounded-2xl border-0 bg-white text-gray-900 shadow-lg focus:ring-4 focus:ring-secondary/50 outline-none"
-                        />
-                    </div>
-                    <div className="relative group">
-                        <div className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400 z-10"><ShieldCheck size={20} /></div>
-                        <input 
-                          type="password" 
-                          value={confirmNewPassword}
-                          onChange={(e) => setConfirmNewPassword(e.target.value)}
-                          placeholder="Confirmer le mot de passe"
-                          className="w-full pl-11 pr-4 py-4 rounded-2xl border-0 bg-white text-gray-900 shadow-lg focus:ring-4 focus:ring-secondary/50 outline-none"
-                        />
-                    </div>
-                </div>
-
-                <button type="submit" disabled={isLoadingInternal} className="w-full bg-secondary text-primaryDark font-bold text-lg py-4 rounded-2xl shadow-xl hover:bg-[#ffc800] transition-all">
-                    {isLoadingInternal ? <Loader2 className="animate-spin mx-auto"/> : "Confirmer"}
-                </button>
-            </form>
-        )}
-
-        {/* Global Error Toast */}
         {error && (
-            <div className="absolute -bottom-20 left-0 w-full bg-red-500 text-white text-sm font-medium p-4 rounded-xl shadow-lg flex items-center gap-3 animate-in slide-in-from-bottom-5">
-                <AlertCircle size={20} className="shrink-0" />
-                {error}
-                <button type="button" onClick={() => setError(null)} className="ml-auto"><X size={16} className="lucide lucide-x" /></button>
+            <div className="absolute -bottom-20 left-0 w-full bg-red-500 text-white text-[12px] font-medium p-4 rounded-2xl shadow-2xl flex items-center gap-3 animate-in slide-in-from-bottom-5">
+                <AlertCircle size={18} className="shrink-0" />
+                <span className="flex-1 leading-snug">{error}</span>
+                <button type="button" onClick={() => setError(null)} className="ml-auto opacity-70 hover:opacity-100">✕</button>
             </div>
         )}
-
       </div>
-      
-      {/* Footer (Terms) */}
-      <div className="mt-auto pt-8 pb-4 text-center">
-        <p className="text-[10px] text-white/40">© 2025 Mon Paré. Tous droits réservés.</p>
-      </div>
-
     </div>
   );
 };
-
-// Helper for X icon since it wasn't imported initially in the error toast block above
-function X({ size, className }: { size?: number, className?: string }) {
-    return <svg xmlns="http://www.w3.org/2000/svg" width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}><path d="M18 6 6 18"/><path d="m6 6 18 18"/></svg>
-}

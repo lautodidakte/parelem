@@ -2,29 +2,46 @@
 import { Organization, User, ImpactReport, RotationItem, Debt, Post, LoanRequest } from './types';
 
 // Utilisateur Hybride : Il gère "Cercle des Entrepreneurs" et est membre de "Famille"
+// Fix: Added isVerified property required by User interface
 export const CURRENT_USER_TREASURER: User = {
   uid: 'u1',
-  email: 'mahamat@monpare.td',
+  email: 'mahamat@directpare.td',
   displayName: 'Mahamat Ali',
   role: 'TREASURER',
+  isVerified: true,
   managedOrgIds: ['org1'],
   memberOrgIds: ['org2']
 };
 
+// Fix: Added isVerified property required by User interface
 export const CURRENT_USER_MEMBER: User = {
   uid: 'u3',
-  email: 'zara@monpare.td',
+  email: 'zara@directpare.td',
   displayName: 'Zara Yacoub',
   role: 'MEMBER',
+  isVerified: false,
   managedOrgIds: [],
   memberOrgIds: ['org1']
 };
 
+// Fix: Added isVerified property required by User interface
+export const CURRENT_USER_THIERRY: User = {
+  uid: 'u_thierry',
+  email: 'thierry@directpare.td',
+  displayName: 'Thierry Nemonguel',
+  role: 'MEMBER',
+  isVerified: false,
+  managedOrgIds: [],
+  memberOrgIds: ['org1']
+};
+
+// Fix: Added isVerified property required by User interface
 export const CURRENT_USER_SUPERVISOR: User = {
   uid: 'u2',
   email: 'fatime@ngo-chad.org',
   displayName: 'Fatimé Zara',
   role: 'SUPERVISOR',
+  isVerified: true,
   managedOrgIds: [],
   memberOrgIds: []
 };
@@ -108,13 +125,14 @@ export const MOCK_ORG: Organization = {
   currency: 'XAF',
   balance: 325000,
   stats: {
-    totalMembers: 12,
+    totalMembers: 13,
     totalSaved: 4500000
   },
   members: [
     { id: 'm1', userId: 'u1', fullName: 'Mahamat Ali', role: 'ADMIN', phone: '+235 66 12 34 56', status: 'UP_TO_DATE', totalContributed: 200000, avatarUrl: 'https://api.dicebear.com/7.x/avataaars/svg?seed=Mahamat' },
     { id: 'm2', userId: 'u3', fullName: 'Zara Yacoub', role: 'MEMBER', phone: '+235 99 88 77 66', status: 'UP_TO_DATE', totalContributed: 150000, avatarUrl: 'https://api.dicebear.com/7.x/avataaars/svg?seed=Zara' },
     { id: 'm3', userId: 'u4', fullName: 'Abakar Moussa', role: 'MEMBER', phone: '+235 66 00 11 22', status: 'LATE', totalContributed: 50000, avatarUrl: 'https://api.dicebear.com/7.x/avataaars/svg?seed=Abakar' },
+    { id: 'm4', userId: 'u_thierry', fullName: 'Thierry Nemonguel', role: 'MEMBER', phone: '+235 66 99 88 77', status: 'UP_TO_DATE', totalContributed: 0, avatarUrl: 'https://api.dicebear.com/7.x/avataaars/svg?seed=Thierry' },
   ],
   transactions: [
     { 
@@ -146,7 +164,7 @@ export const MOCK_ORG: Organization = {
       id: 'c1',
       type: 'ROTATING',
       status: 'ACTIVE',
-      participants: ['m1', 'm2', 'm3'],
+      participants: ['m1', 'm2', 'm3', 'm4'],
       method: 'ORDER',
       amountPerMember: 100000,
       frequency: 'MONTHLY'
