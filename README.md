@@ -1,20 +1,40 @@
-<div align="center">
-<img width="1200" height="475" alt="GHBanner" src="https://github.com/user-attachments/assets/0aa67016-6eaf-458a-adb2-6e31a0763ed6" />
-</div>
+# DirectParé — Tontine & Impact
 
-# Run and deploy your AI Studio app
+Plateforme sociale de gestion de tontines et de suivi d'impact au Tchad.
 
-This contains everything you need to run your app locally.
+Application **Next.js 15** (App Router) + **React 19** + **TypeScript** + **Tailwind CSS**, déployée sur **Vercel**. Migration depuis l'ancienne base Vite/SPA (les écrans historiques tournent côté client via `react-router-dom`, encapsulés dans Next.js).
 
-View your app in AI Studio: https://ai.studio/apps/drive/1KqAkVyslQ1QM9fmdBCgocfiuip4wzCfa
+## Stack
 
-## Run Locally
+| Couche          | Techno                                              |
+| --------------- | --------------------------------------------------- |
+| Framework       | Next.js 15 (App Router), déploiement natif Vercel   |
+| UI              | React 19, Tailwind CSS, lucide-react, recharts      |
+| IA              | Google Gemini (via route serveur `/api/...`)        |
+| Base / Auth     | Supabase (schéma prêt — voir `supabase/migrations`) |
+| Paiements       | Mobile Money (Airtel Money / Moov) — à intégrer     |
 
-**Prerequisites:**  Node.js
+## Démarrer en local
 
+**Prérequis :** Node.js 18+
 
-1. Install dependencies:
-   `npm install`
-2. Set the `GEMINI_API_KEY` in [.env.local](.env.local) to your Gemini API key
-3. Run the app:
-   `npm run dev`
+```bash
+npm install
+cp .env.example .env.local   # puis renseigner les clés
+npm run dev                  # http://localhost:3000
+```
+
+## Structure
+
+- `app/` — App Router (layout, page d'entrée, routes API serveur)
+- `components/`, `contexts/`, `services/` — écrans et logique (repris de l'existant)
+- `lib/supabase/` — client Supabase (à brancher)
+- `supabase/migrations/` — schéma SQL initial (Postgres + RLS)
+
+## Feuille de route
+
+1. ✅ Migration Next.js + déploiement Vercel
+2. ✅ IA Gemini déplacée côté serveur (clé protégée)
+3. ⏳ Brancher Supabase (auth OTP téléphone + remplacer les données mock)
+4. ⏳ Paiements Mobile Money (Airtel Money API / agrégateur pan-africain)
+5. ⏳ PWA offline complète (service worker + file de synchronisation)

@@ -1,44 +1,33 @@
+// Appelle la route serveur /api/analyze-transaction.
+// La clé Gemini n'est plus jamais présente dans le bundle navigateur.
 
-import { GoogleGenAI, Type } from "@google/genai";
+export interface TransactionAnalysis {
+  isSuspicious: boolean;
+  reason: string;
+}
 
-// Initialize Gemini API client following the official guidelines
-const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
-
-export const analyzeTransaction = async (description: string, amount: number) => {
-  // Use ai.models.generateContent to query the model with structured output
+export const analyzeTransaction = async (
+  description: string,
+  amount: number,
+): Promise<TransactionAnalysis> => {
   try {
-    const response = await ai.models.generateContent({
-      model: 'gemini-2.5-flash',
-      contents: `Analyse cette transaction de tontine au Tchad pour suspicion de fraude : "${description}" d'un montant de ${amount} FCFA. Réponds au format JSON.`,
-      config: {
-        responseMimeType: "application/json",
-        responseSchema: {
-          type: Type.OBJECT,
-          properties: {
-            isSuspicious: {
-              type: Type.BOOLEAN,
-              description: "Indique si la transaction est suspecte.",
-            },
-            reason: {
-              type: Type.STRING,
-              description: "La raison du marquage comme suspect ou non.",
-            },
-          },
-          required: ["isSuspicious", "reason"],
-        },
-      },
+    const res = await fetch("/api/analyze-transaction", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ description, amount }),
     });
 
-    // Directly access .text property from the response
-    const jsonStr = response.text || "{}";
-    const result = JSON.parse(jsonStr.trim());
-    
+    if (!res.ok) {
+      return { isSuspicious: false, reason: "Analyse IA indisponible" };
+    }
+
+    const data = await res.json();
     return {
-      isSuspicious: result.isSuspicious ?? false,
-      reason: result.reason ?? 'Analyse effectuée par l\'IA'
+      isSuspicious: data.isSuspicious ?? false,
+      reason: data.reason ?? "Analyse effectuée par l'IA",
     };
   } catch (e) {
-    console.warn("Gemini API error during transaction analysis:", e);
-    return { isSuspicious: false, reason: 'Analyse IA indisponible pour le moment' };
+    console.warn("Erreur lors de l'analyse de transaction:", e);
+    return { isSuspicious: false, reason: "Analyse IA indisponible pour le moment" };
   }
 };
