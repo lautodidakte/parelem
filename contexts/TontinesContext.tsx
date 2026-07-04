@@ -14,7 +14,7 @@ const TontinesContext = createContext<TontinesContextType | undefined>(undefined
 
 export const TontinesProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [tontines, setTontines] = useState<Organization[]>(() => {
-    const saved = localStorage.getItem('directpare_tontines');
+    const saved = localStorage.getItem('parelem_tontines');
     // On fusionne avec MOCK_ORG pour s'assurer qu'elle est toujours présente au moins une fois
     if (saved) {
       const parsed = JSON.parse(saved);
@@ -24,7 +24,7 @@ export const TontinesProvider: React.FC<{ children: React.ReactNode }> = ({ chil
   });
 
   useEffect(() => {
-    localStorage.setItem('directpare_tontines', JSON.stringify(tontines));
+    localStorage.setItem('parelem_tontines', JSON.stringify(tontines));
   }, [tontines]);
 
   const addTontine = (t: Organization) => {

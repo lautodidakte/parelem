@@ -2,15 +2,15 @@ import type { Metadata, Viewport } from "next";
 import "./globals.css";
 
 export const metadata: Metadata = {
-  title: "DirectParé — Tontine & Impact",
+  title: "Parelem — Tontine & Impact",
   description:
     "Plateforme sociale de gestion de tontines et de suivi d'impact au Tchad.",
   manifest: "/manifest.webmanifest",
-  applicationName: "DirectParé",
+  applicationName: "Parelem",
   appleWebApp: {
     capable: true,
     statusBarStyle: "default",
-    title: "DirectParé",
+    title: "Parelem",
   },
   icons: {
     icon: "/icon.svg",

@@ -26,7 +26,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
-    const storedUser = localStorage.getItem('directpare_user');
+    const storedUser = localStorage.getItem('parelem_user');
     if (storedUser) {
       setUser(JSON.parse(storedUser));
     }
@@ -45,7 +45,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     if (mockMatch) {
       foundUser = mockMatch;
       setUser(foundUser);
-      localStorage.setItem('directpare_user', JSON.stringify(foundUser));
+      localStorage.setItem('parelem_user', JSON.stringify(foundUser));
     } else {
       setIsLoading(false);
       throw new Error(`Email inconnu.`);
@@ -60,14 +60,14 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     if (user) {
       const updatedUser = { ...user, isVerified: true };
       setUser(updatedUser);
-      localStorage.setItem('directpare_user', JSON.stringify(updatedUser));
+      localStorage.setItem('parelem_user', JSON.stringify(updatedUser));
     }
     setIsLoading(false);
   };
 
   const logout = () => {
     setUser(null);
-    localStorage.removeItem('directpare_user');
+    localStorage.removeItem('parelem_user');
   };
 
   return (

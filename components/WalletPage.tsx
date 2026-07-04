@@ -63,7 +63,7 @@ export const WalletPage: React.FC = () => {
           </div>
           
           <p className="text-white/80 text-sm mb-6 max-w-xs leading-relaxed">
-              Gérez votre argent DirectParé en toute sécurité.
+              Gérez votre argent Parelem en toute sécurité.
           </p>
 
           <div className="bg-white rounded-3xl p-6 shadow-xl text-center mx-auto absolute left-6 right-6 -bottom-20 border border-gray-100">

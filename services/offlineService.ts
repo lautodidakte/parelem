@@ -1,7 +1,7 @@
 
 import { Transaction } from '../types';
 
-const QUEUE_KEY = 'directpare_offline_queue';
+const QUEUE_KEY = 'parelem_offline_queue';
 
 export const isOnline = (): boolean => {
   return typeof navigator !== 'undefined' && navigator.onLine;

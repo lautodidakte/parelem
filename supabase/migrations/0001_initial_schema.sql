@@ -1,5 +1,5 @@
 -- ============================================================================
--- DirectParé — Schéma initial Supabase (Postgres)
+-- Parelem — Schéma initial Supabase (Postgres)
 -- Dérivé de types.ts. À appliquer via `supabase db push` ou l'éditeur SQL.
 -- Point de départ : les politiques RLS sont volontairement simples et devront
 -- être durcies avant la production (finance = données sensibles).

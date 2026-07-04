@@ -1,4 +1,4 @@
-# DirectParé — Tontine & Impact
+# Parelem — Tontine & Impact
 
 Plateforme sociale de gestion de tontines et de suivi d'impact au Tchad.
 
