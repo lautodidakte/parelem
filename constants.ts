@@ -46,6 +46,17 @@ export const CURRENT_USER_SUPERVISOR: User = {
   memberOrgIds: []
 };
 
+// Compte de démonstration (identifiants fixes pour tester l'application)
+export const CURRENT_USER_DEMO: User = {
+  uid: 'u_demo',
+  email: 'demo@parelem.com',
+  displayName: 'Compte Démo',
+  role: 'TREASURER',
+  isVerified: true,
+  managedOrgIds: ['org1'],
+  memberOrgIds: ['org2'],
+};
+
 // Aliases for compatibility
 export const CURRENT_USER = CURRENT_USER_TREASURER;
 export const CURRENT_SUPERVISOR = CURRENT_USER_SUPERVISOR;

@@ -109,6 +109,7 @@ export const MemberDashboard: React.FC = () => {
             <span className="text-gray-400 text-sm">Aujourd'hui</span>
          </div>
 
+         <div className="lg:grid lg:grid-cols-2 lg:gap-6 lg:items-start">
          {activeTontinesCount > 0 ? (
             tontines.map((t, idx) => (
                <div key={t.id} className={`${idx > 0 ? 'mt-4' : ''} bg-secondary rounded-3xl p-6 text-primary relative shadow-lg shadow-yellow-200/50 mb-6 transition-transform hover:scale-[1.01] cursor-pointer`} onClick={() => navigate(`/member/tontine/${t.id}`)}>
@@ -155,9 +156,10 @@ export const MemberDashboard: React.FC = () => {
                  </div>
              </div>
          </div>
+         </div>
       </div>
 
-      <CreateTontineDialog 
+      <CreateTontineDialog
         isOpen={isCreateOpen} 
         onClose={() => setIsCreateOpen(false)} 
         onTontineCreated={addTontine}
