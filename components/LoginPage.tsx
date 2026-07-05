@@ -153,7 +153,7 @@ export const LoginPage: React.FC<LoginPageProps> = ({ initialView = 'LOGIN_EMAIL
       </div>
 
       <div className={`text-center mb-10 relative z-10 transition-all ${view === 'REGISTER' ? 'mt-4' : ''}`}>
-        <h1 className="text-4xl font-bold text-white mb-0.5 font-heading tracking-tight">DirectParé</h1>
+        <h1 className="text-4xl font-bold text-white mb-0.5 font-heading tracking-tight">Parelem</h1>
         <p className="text-white/80 text-[10px] font-medium uppercase tracking-widest">Tontine & Impact</p>
       </div>
       
@@ -169,7 +169,7 @@ export const LoginPage: React.FC<LoginPageProps> = ({ initialView = 'LOGIN_EMAIL
                 <div className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400 z-10"><Mail size={18} /></div>
                 <input 
                   type="email" value={email} onChange={(e) => setEmail(e.target.value)}
-                  placeholder="exemple@directpare.td"
+                  placeholder="exemple@parelem.td"
                   className="w-full pl-11 pr-4 py-4 rounded-2xl border-0 bg-white text-gray-900 shadow-[0_0_20px_rgba(255,255,255,0.1)] focus:ring-4 focus:ring-secondary/50 outline-none text-sm font-medium"
                   autoFocus
                 />
@@ -298,7 +298,7 @@ export const LoginPage: React.FC<LoginPageProps> = ({ initialView = 'LOGIN_EMAIL
               <div className="space-y-3 pt-2">
                 <div className="flex items-start gap-2">
                     <input type="checkbox" id="terms" className="mt-1 w-4 h-4 rounded text-primary focus:ring-primary" checked={regData.acceptTerms} onChange={e => setRegData({...regData, acceptTerms: e.target.checked})}/>
-                    <label htmlFor="terms" className="text-[10px] text-gray-600 leading-tight">J'accepte les Conditions d'Utilisation de DirectParé et certifie l'exactitude des informations.</label>
+                    <label htmlFor="terms" className="text-[10px] text-gray-600 leading-tight">J'accepte les Conditions d'Utilisation de Parelem et certifie l'exactitude des informations.</label>
                 </div>
 
                 <div className="flex gap-3 bg-blue-50/50 p-3 rounded-xl border border-blue-100">

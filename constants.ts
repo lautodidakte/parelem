@@ -5,7 +5,7 @@ import { Organization, User, ImpactReport, RotationItem, Debt, Post, LoanRequest
 // Fix: Added isVerified property required by User interface
 export const CURRENT_USER_TREASURER: User = {
   uid: 'u1',
-  email: 'mahamat@directpare.td',
+  email: 'mahamat@parelem.td',
   displayName: 'Mahamat Ali',
   role: 'TREASURER',
   isVerified: true,
@@ -16,7 +16,7 @@ export const CURRENT_USER_TREASURER: User = {
 // Fix: Added isVerified property required by User interface
 export const CURRENT_USER_MEMBER: User = {
   uid: 'u3',
-  email: 'zara@directpare.td',
+  email: 'zara@parelem.td',
   displayName: 'Zara Yacoub',
   role: 'MEMBER',
   isVerified: false,
@@ -27,7 +27,7 @@ export const CURRENT_USER_MEMBER: User = {
 // Fix: Added isVerified property required by User interface
 export const CURRENT_USER_THIERRY: User = {
   uid: 'u_thierry',
-  email: 'thierry@directpare.td',
+  email: 'thierry@parelem.td',
   displayName: 'Thierry Nemonguel',
   role: 'MEMBER',
   isVerified: false,

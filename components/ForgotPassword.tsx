@@ -121,7 +121,7 @@ export const ForgotPassword: React.FC = () => {
                     type="email" 
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
-                    placeholder="exemple@directpare.td"
+                    placeholder="exemple@parelem.td"
                     className="w-full pl-12 pr-4 py-4 rounded-2xl border border-gray-100 bg-gray-50 text-gray-900 focus:ring-4 focus:ring-primary/10 focus:border-primary outline-none text-sm font-medium transition-all"
                     required
                   />
@@ -189,7 +189,7 @@ export const ForgotPassword: React.FC = () => {
                   <Lock size={40} className="text-primary" />
                 </div>
                 <h2 className="text-2xl font-bold text-gray-900 font-heading">Nouveau mot de passe</h2>
-                <p className="text-gray-500 text-sm mt-2">Sécurisez votre compte DirectParé.</p>
+                <p className="text-gray-500 text-sm mt-2">Sécurisez votre compte Parelem.</p>
               </div>
 
               <form onSubmit={handleResetPassword} className="space-y-5">
@@ -265,7 +265,7 @@ export const ForgotPassword: React.FC = () => {
         </div>
         
         <p className="text-center text-white/50 text-[10px] font-medium mt-8 uppercase tracking-widest">
-          DirectParé • Sécurité & Impact
+          Parelem • Sécurité & Impact
         </p>
       </div>
 

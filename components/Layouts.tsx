@@ -52,8 +52,8 @@ export const AppLayout: React.FC<LayoutProps> = ({ role }) => {
         bg-white border-r border-gray-100 z-50
       `}>
         <div className="p-8 flex items-center gap-3">
-          <div className="w-10 h-10 bg-primary rounded-xl flex items-center justify-center text-white font-bold text-xl">D</div>
-          <h1 className="text-2xl font-bold text-gray-900 font-heading tracking-tight">DirectParé</h1>
+          <div className="w-10 h-10 bg-primary rounded-xl flex items-center justify-center text-white font-bold text-xl">P</div>
+          <h1 className="text-2xl font-bold text-gray-900 font-heading tracking-tight">Parelem</h1>
         </div>
 
         <div className="px-8 mb-4">

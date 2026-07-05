@@ -5,7 +5,7 @@ import { ChevronRight, Users, TrendingUp, HandCoins, Bell, Check, Sparkles, File
 const SLIDES = [
   {
     id: 1,
-    title: "Un projet ? DirectParé vous aide à le réaliser.",
+    title: "Un projet ? Parelem vous aide à le réaliser.",
     text: "Mariage, commerce, ou soutien familial : activez la solidarité de votre groupe et réalisez vos projets sans attendre.",
     visual: "orbital"
   },
@@ -18,7 +18,7 @@ const SLIDES = [
   {
     id: 3,
     title: "Plus d'oublis, plus de palabres.",
-    text: "DirectParé gère les rappels SMS, le suivi des versements et la sécurité. Profitez de la solidarité, sans la complexité.",
+    text: "Parelem gère les rappels SMS, le suivi des versements et la sécurité. Profitez de la solidarité, sans la complexité.",
     visual: "notifications"
   },
   {
@@ -37,13 +37,13 @@ export const OnboardingWalkthrough: React.FC = () => {
     if (currentSlide < SLIDES.length - 1) {
       setCurrentSlide(prev => prev + 1);
     } else {
-      localStorage.setItem('monpare_onboarding_completed', 'true');
+      localStorage.setItem('parelem_onboarding_completed', 'true');
       navigate('/login');
     }
   };
 
   const handleSkip = () => {
-    localStorage.setItem('monpare_onboarding_completed', 'true');
+    localStorage.setItem('parelem_onboarding_completed', 'true');
     navigate('/login');
   };
 

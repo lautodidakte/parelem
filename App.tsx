@@ -43,7 +43,7 @@ const ProtectedRoute: React.FC<{ children: React.ReactElement, allowedRole: Role
 
 const RootRoute: React.FC = () => {
     const { user, isLoading } = useAuth();
-    const hasSeenOnboarding = localStorage.getItem('monpare_onboarding_completed');
+    const hasSeenOnboarding = localStorage.getItem('parelem_onboarding_completed');
 
     if (isLoading) return null;
 

@@ -130,7 +130,7 @@ export const ProfilePage: React.FC = () => {
               Déconnexion
             </button>
             <p className="text-center text-[10px] text-gray-400 mt-6 font-medium">
-              Version 1.0.4 • DirectParé Tontine & Impact
+              Version 1.0.4 • Parelem Tontine & Impact
             </p>
           </div>
         </div>
