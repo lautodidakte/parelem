@@ -65,7 +65,7 @@ export const LoginPage: React.FC<LoginPageProps> = ({ initialView = 'LOGIN_EMAIL
     setError(null);
     if (!password) return setError("Mot de passe requis.");
     try {
-      await login(email);
+      await login(email, password);
     } catch (err: any) {
       setError(err.message || "Erreur de connexion.");
     }

@@ -1,11 +1,11 @@
 
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import { User } from '../types';
-import { CURRENT_USER_TREASURER, CURRENT_USER_SUPERVISOR, CURRENT_USER_MEMBER, CURRENT_USER_THIERRY } from '../constants';
+import { CURRENT_USER_TREASURER, CURRENT_USER_SUPERVISOR, CURRENT_USER_MEMBER, CURRENT_USER_THIERRY, CURRENT_USER_DEMO } from '../constants';
 
 interface AuthContextType {
   user: User | null;
-  login: (email: string) => Promise<void>;
+  login: (email: string, password?: string) => Promise<void>;
   logout: () => void;
   verifyUser: () => Promise<void>; // Simuler la validation KYC
   isLoading: boolean;
@@ -13,12 +13,17 @@ interface AuthContextType {
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
+// Compte de démonstration : identifiants fixes, mot de passe requis.
+const DEMO_EMAIL = 'demo@parelem.com';
+const DEMO_PASSWORD = 'Parelem@235';
+
 // On ajoute isVerified aux mocks de base (Thierry et Member commencent non-vérifiés)
 const MOCK_USERS_AUGMENTED = [
     { ...CURRENT_USER_TREASURER, isVerified: true },
     { ...CURRENT_USER_SUPERVISOR, isVerified: true },
     { ...CURRENT_USER_MEMBER, isVerified: false },
     { ...CURRENT_USER_THIERRY, isVerified: false },
+    { ...CURRENT_USER_DEMO, isVerified: true },
 ];
 
 export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
@@ -33,24 +38,28 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     setIsLoading(false);
   }, []);
 
-  const login = async (email: string) => {
+  const login = async (email: string, password?: string) => {
     setIsLoading(true);
     await new Promise(resolve => setTimeout(resolve, 800));
 
-    let foundUser: User | null = null;
     const normalizedEmail = email.toLowerCase().trim();
+
+    // Le compte de démonstration exige son mot de passe.
+    if (normalizedEmail === DEMO_EMAIL && password !== undefined && password !== DEMO_PASSWORD) {
+      setIsLoading(false);
+      throw new Error('Mot de passe incorrect.');
+    }
 
     const mockMatch = MOCK_USERS_AUGMENTED.find(u => u.email.toLowerCase() === normalizedEmail);
 
     if (mockMatch) {
-      foundUser = mockMatch;
-      setUser(foundUser);
-      localStorage.setItem('parelem_user', JSON.stringify(foundUser));
+      setUser(mockMatch);
+      localStorage.setItem('parelem_user', JSON.stringify(mockMatch));
     } else {
       setIsLoading(false);
       throw new Error(`Email inconnu.`);
     }
-    
+
     setIsLoading(false);
   };
 
