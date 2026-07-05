@@ -1,15 +1,17 @@
 import React from 'react';
 import { Card } from './ui/Card';
-import { MOCK_IMPACT_REPORTS } from '../constants';
-import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, LineChart, Line } from 'recharts';
+import { StatCard } from './ui/StatCard';
+import { TrendChart } from './ui/MiniCharts';
 
 export const ImpactDashboard: React.FC = () => {
-  const data = MOCK_IMPACT_REPORTS.map(r => ({
-    name: r.period,
-    Emplois: r.metrics.jobsCreated,
-    Croissance: r.metrics.revenueGrowth,
-    Score: r.metrics.accessToFinanceScore
-  }));
+  // Série trimestrielle (démo) pour donner du relief aux graphiques.
+  const data = [
+    { name: '2024-T1', Emplois: 45, Croissance: 8 },
+    { name: '2024-T2', Emplois: 72, Croissance: 11 },
+    { name: '2024-T3', Emplois: 98, Croissance: 14 },
+    { name: '2024-T4', Emplois: 120, Croissance: 16 },
+    { name: '2025-T1', Emplois: 142, Croissance: 18 },
+  ];
 
   return (
     <div className="space-y-8 max-w-6xl mx-auto">
@@ -18,60 +20,60 @@ export const ImpactDashboard: React.FC = () => {
         <p className="text-gray-500 mt-1">Suivi de la croissance économique dans la région du Chari-Baguirmi</p>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-        <div className="bg-white p-6 rounded-2xl shadow-sm border border-gray-100 hover:shadow-lg transition-shadow">
-            <p className="text-gray-500 text-sm font-medium">Emplois Créés (Net)</p>
-            <h3 className="text-4xl font-bold text-primary mt-2">142</h3>
-            <span className="text-xs bg-green-50 text-green-700 font-bold px-2 py-1 rounded-lg mt-3 inline-block">+12% vs trimestre dernier</span>
-        </div>
-        <div className="bg-white p-6 rounded-2xl shadow-sm border border-gray-100 hover:shadow-lg transition-shadow">
-            <p className="text-gray-500 text-sm font-medium">Croissance Revenus Moy.</p>
-            <h3 className="text-4xl font-bold text-secondary mt-2">18%</h3>
-             <span className="text-xs bg-green-50 text-green-700 font-bold px-2 py-1 rounded-lg mt-3 inline-block">Au-dessus de la cible (15%)</span>
-        </div>
-        <div className="bg-white p-6 rounded-2xl shadow-sm border border-gray-100 hover:shadow-lg transition-shadow">
-            <p className="text-gray-500 text-sm font-medium">Cohortes Actives</p>
-            <h3 className="text-4xl font-bold text-gray-800 mt-2">8</h3>
-            <span className="text-xs text-gray-400 mt-3 inline-block">À travers 3 villes</span>
-        </div>
-         <div className="bg-white p-6 rounded-2xl shadow-sm border border-gray-100 hover:shadow-lg transition-shadow">
-            <p className="text-gray-500 text-sm font-medium">Accès au Financement</p>
-            <h3 className="text-4xl font-bold text-primary mt-2">7.8/10</h3>
-             <span className="text-xs bg-green-50 text-green-700 font-bold px-2 py-1 rounded-lg mt-3 inline-block">Amélioration constante</span>
-        </div>
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 lg:gap-6">
+        <StatCard
+          label="Emplois Créés (Net)"
+          value="142"
+          accent="green"
+          trend="up"
+          delta="+12%"
+          data={[110, 118, 124, 130, 135, 139, 142]}
+        />
+        <StatCard
+          label="Croissance Revenus Moy."
+          value="18%"
+          accent="gold"
+          trend="up"
+          delta="Cible 15% ✓"
+          data={[12, 13, 14, 15, 16, 17, 18]}
+        />
+        <StatCard
+          label="Cohortes Actives"
+          value="8"
+          accent="primary"
+          trend="neutral"
+          delta="3 villes"
+          data={[5, 6, 6, 7, 7, 8, 8]}
+        />
+        <StatCard
+          label="Accès au Financement"
+          value="7.8/10"
+          accent="primary"
+          trend="up"
+          delta="En hausse"
+          data={[6.5, 6.8, 7, 7.2, 7.4, 7.6, 7.8]}
+        />
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
         <Card title="Tendances Création d'Emplois" className="border-none shadow-md">
-          <div className="h-72 w-full mt-4">
-            <ResponsiveContainer width="100%" height="100%">
-              <BarChart data={data}>
-                <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f3f4f6" />
-                <XAxis dataKey="name" axisLine={false} tickLine={false} tick={{fill: '#9CA3AF', fontSize: 12}} />
-                <YAxis axisLine={false} tickLine={false} tick={{fill: '#9CA3AF', fontSize: 12}} />
-                <Tooltip 
-                    contentStyle={{borderRadius: '12px', border: 'none', boxShadow: '0 10px 15px -3px rgba(0,0,0,0.1)'}}
-                    cursor={{fill: '#F3F4F6'}}
-                />
-                <Bar dataKey="Emplois" fill="#1A5E3A" radius={[8, 8, 0, 0]} barSize={50} />
-              </BarChart>
-            </ResponsiveContainer>
+          <div className="mt-4">
+            <TrendChart
+              variant="bars"
+              color="#328080"
+              data={data.map((d) => ({ name: d.name, value: d.Emplois }))}
+            />
           </div>
         </Card>
 
         <Card title="Croissance des Revenus (%)" className="border-none shadow-md">
-          <div className="h-72 w-full mt-4">
-            <ResponsiveContainer width="100%" height="100%">
-              <LineChart data={data}>
-                <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f3f4f6" />
-                <XAxis dataKey="name" axisLine={false} tickLine={false} tick={{fill: '#9CA3AF', fontSize: 12}} />
-                <YAxis axisLine={false} tickLine={false} tick={{fill: '#9CA3AF', fontSize: 12}} />
-                <Tooltip 
-                     contentStyle={{borderRadius: '12px', border: 'none', boxShadow: '0 10px 15px -3px rgba(0,0,0,0.1)'}}
-                />
-                <Line type="monotone" dataKey="Croissance" stroke="#FFD700" strokeWidth={4} dot={{r: 6, fill: '#FFD700', strokeWidth: 2, stroke: '#fff'}} />
-              </LineChart>
-            </ResponsiveContainer>
+          <div className="mt-4">
+            <TrendChart
+              variant="area"
+              color="#E0A800"
+              suffix="%"
+              data={data.map((d) => ({ name: d.name, value: d.Croissance }))}
+            />
           </div>
         </Card>
       </div>
