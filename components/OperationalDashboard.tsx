@@ -1,8 +1,10 @@
 
 import React, { useState } from 'react';
 import { MOCK_ORG, MOCK_POSTS } from '../constants';
-import { Plus, ArrowUpRight, ArrowDownRight, RefreshCw, AlertTriangle, Bot, MessageCircle, Heart, Share2, Layers, Wallet, Globe } from 'lucide-react';
+import { Plus, ArrowUpRight, ArrowDownRight, AlertTriangle, Bot, MessageCircle, Heart, Share2, Layers, Wallet, Globe, Users } from 'lucide-react';
 import { CreateTontineDialog } from './CreateTontineDialog';
+import { BalanceCard } from './ui/BalanceCard';
+import { StatCard } from './ui/StatCard';
 
 export const OperationalDashboard: React.FC = () => {
   const [activeTab, setActiveTab] = useState<'MY_SPACE' | 'FEED'>('MY_SPACE');
@@ -61,31 +63,41 @@ export const OperationalDashboard: React.FC = () => {
       {/* --- TAB CONTENT: MON ESPACE --- */}
       {activeTab === 'MY_SPACE' && (
         <div className="space-y-8 animate-in slide-in-from-left-4 duration-300">
-            {/* Financial Card */}
-            <div className="bg-[#0F172A] rounded-3xl p-8 text-white shadow-2xl relative overflow-hidden">
-                <div className="absolute -top-24 -right-24 w-64 h-64 bg-primary/30 rounded-full blur-3xl"></div>
-                <div className="relative z-10">
-                    <div className="flex justify-between items-start mb-8">
-                        <div>
-                            <p className="text-gray-400 text-sm font-medium mb-1">Solde Total (Toutes Tontines)</p>
-                            <h2 className="text-4xl md:text-5xl font-bold font-heading tracking-tight">
-                                {new Intl.NumberFormat('fr-TD').format(org.balance)} <span className="text-2xl text-gray-500 font-normal">FCFA</span>
-                            </h2>
-                        </div>
-                        <button className="p-3 bg-white/10 rounded-2xl hover:bg-white/20 transition-colors text-green-400">
-                            <RefreshCw size={20} />
-                        </button>
-                    </div>
-                    <div className="flex gap-8 md:gap-12 border-t border-white/10 pt-6">
-                        <div>
-                            <p className="text-gray-400 text-xs font-medium mb-1">Entrées</p>
-                            <p className="text-green-400 font-bold text-lg">+{new Intl.NumberFormat('fr-TD').format(income)}</p>
-                        </div>
-                        <div>
-                            <p className="text-gray-400 text-xs font-medium mb-1">Sorties</p>
-                            <p className="text-red-400 font-bold text-lg">-{new Intl.NumberFormat('fr-TD').format(expense)}</p>
-                        </div>
-                    </div>
+            {/* Solde + KPIs (composants pilote : BalanceCard + StatCard à sparkline) */}
+            <div className="space-y-4">
+                <BalanceCard
+                  label="Solde Total (Toutes Tontines)"
+                  amount={org.balance}
+                  currency="FCFA"
+                />
+                <div className="grid grid-cols-2 lg:grid-cols-3 gap-4">
+                    <StatCard
+                      label="Entrées"
+                      value={`+${new Intl.NumberFormat('fr-TD').format(income)}`}
+                      accent="green"
+                      trend="up"
+                      delta="+8%"
+                      data={[3, 5, 4, 6, 5, 7, 9]}
+                      icon={<ArrowUpRight size={16} />}
+                    />
+                    <StatCard
+                      label="Sorties"
+                      value={`-${new Intl.NumberFormat('fr-TD').format(expense)}`}
+                      accent="red"
+                      trend="down"
+                      delta="-3%"
+                      data={[4, 3, 5, 3, 4, 2, 2]}
+                      icon={<ArrowDownRight size={16} />}
+                    />
+                    <StatCard
+                      label="Membres actifs"
+                      value={`${org.stats.totalMembers}`}
+                      accent="primary"
+                      trend="up"
+                      delta="+2"
+                      data={[8, 9, 10, 11, 12, 12, 13]}
+                      icon={<Users size={16} />}
+                    />
                 </div>
             </div>
 
