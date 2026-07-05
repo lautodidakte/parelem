@@ -86,7 +86,7 @@ export const WalletPage: React.FC = () => {
        <div className="px-6 mt-4">
           <h3 className="font-bold text-lg text-gray-900 font-heading mb-5">Historique</h3>
           
-          <div className="space-y-3">
+          <div className="space-y-3 lg:space-y-0 lg:grid lg:grid-cols-2 lg:gap-3">
               {transactions.map((tx) => (
                   <div key={tx.id} className="bg-gray-50 p-4 rounded-2xl flex justify-between items-center border border-gray-100/50 transition-colors">
                       <div className="flex items-center gap-4">
