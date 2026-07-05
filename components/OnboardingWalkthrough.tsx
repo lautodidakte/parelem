@@ -149,7 +149,8 @@ export const OnboardingWalkthrough: React.FC = () => {
   };
 
   return (
-    <div className="h-screen w-full flex flex-col bg-white overflow-hidden relative font-sans">
+    <div className="h-screen w-full flex flex-col items-center bg-white overflow-hidden relative font-sans">
+      <div className="w-full max-w-md flex-1 flex flex-col min-h-0">
       {/* Bouton Sauter */}
       <div className="flex justify-end p-8 z-20">
         <button 
@@ -194,6 +195,7 @@ export const OnboardingWalkthrough: React.FC = () => {
             </span>
             <ChevronRight size={18} className="mt-0.5" />
         </button>
+      </div>
       </div>
 
       <style>{`

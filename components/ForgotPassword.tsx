@@ -87,7 +87,7 @@ export const ForgotPassword: React.FC = () => {
   };
 
   return (
-    <div className="min-h-screen w-full flex flex-col items-center bg-primary p-6 relative overflow-y-auto">
+    <div className="min-h-screen w-full flex flex-col items-center justify-center bg-primary p-6 relative overflow-y-auto">
       {/* Background blobs */}
       <div className="fixed top-0 left-0 w-full h-full overflow-hidden pointer-events-none">
         <div className="absolute top-[-10%] right-[-5%] w-96 h-96 bg-white/5 rounded-full blur-3xl"></div>
@@ -101,7 +101,7 @@ export const ForgotPassword: React.FC = () => {
         <ArrowLeft size={24} className="group-hover:-translate-x-1 transition-transform" />
       </button>
 
-      <div className="w-full max-w-md mt-24 relative z-10">
+      <div className="w-full max-w-md my-24 relative z-10">
         <div className="bg-white rounded-[2.5rem] p-8 shadow-2xl animate-in slide-in-from-bottom-8 duration-500">
           
           {step === 'EMAIL' && (

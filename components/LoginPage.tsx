@@ -135,7 +135,7 @@ export const LoginPage: React.FC<LoginPageProps> = ({ initialView = 'LOGIN_EMAIL
   const showPasswordMatchError = regData.confirmPassword !== '' && regData.password !== regData.confirmPassword;
 
   return (
-    <div className="min-h-screen w-full flex flex-col items-center bg-primary p-4 relative overflow-y-auto pt-20">
+    <div className="min-h-screen w-full flex flex-col items-center justify-center bg-primary p-4 relative overflow-y-auto py-20">
       
       {/* Bouton de retour en haut à gauche */}
       <button 
